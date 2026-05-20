@@ -28,7 +28,6 @@ import {
 gsap.registerPlugin(ScrollTrigger);
 
 export default function App() {
-  // Global View Router State: 'Home', 'Facility', 'Membership', or 'Contact'
   const [currentPage, setCurrentPage] = useState('Home');
   const [showTopBtn, setShowTopBtn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,12 +41,13 @@ export default function App() {
     if (currentPage !== 'Home') return;
 
     const loadingTimer = setTimeout(() => {
-  setIsLoading(false);
-}, 1800);
+      setIsLoading(false);
+    }, 1800);
 
     const mm = gsap.matchMedia();
     mm.add("(min-width: 1024px)", () => {
-      gsap.fromTo(heroImageContainer.current, 
+      if (!heroImageContainer.current) return; 
+      gsap.fromTo(heroImageContainer.current,
         { width: "100%", height: "100vh", borderRadius: "0px" },
         {
           width: "85%",
@@ -65,45 +65,45 @@ export default function App() {
         }
       );
 
-      gsap.to(leftTextColumn.current, {
-        y: -60,
+      if (leftTextColumn.current && masterContainer.current) {
+        gsap.to(leftTextColumn.current, {
+          y: -60,
+          opacity: 0,
+          ease: "none",
+          scrollTrigger: {
+            trigger: masterContainer.current,
+            start: "top top",
+            end: "center top",
+            scrub: 0.5
+          }
+        });
+      }
+    });
+
+    const handleScroll = () => {
+      setShowTopBtn(window.scrollY > 500);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    gsap.utils.toArray("section").forEach((section) => {
+      gsap.from(section, {
         opacity: 0,
-        ease: "none",
+        y: 40,
+        duration: 1,
         scrollTrigger: {
-          trigger: masterContainer.current,
-          start: "top top",
-          end: "center top",
-          scrub: 0.5
+          trigger: section,
+          start: "top 85%"
         }
       });
     });
-    const handleScroll = () => {
-  setShowTopBtn(window.scrollY > 500);
-};
-
-window.addEventListener("scroll", handleScroll);
-
-gsap.utils.toArray("section").forEach((section) => {
-  gsap.from(section, {
-    opacity: 0,
-    y: 40,
-    duration: 1,
-
-    scrollTrigger: {
-      trigger: section,
-      start: "top 85%"
-    }
-  });
-});
 
     return () => {
       clearTimeout(loadingTimer);
-  window.removeEventListener("scroll", handleScroll);
-
-  mm.revert();
-
-  ScrollTrigger.getAll().forEach(t => t.kill());
-};
+      window.removeEventListener("scroll", handleScroll);
+      mm.revert();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
   }, [currentPage]);
 
   const handleTabChange = (targetView) => {
@@ -117,19 +117,18 @@ gsap.utils.toArray("section").forEach((section) => {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
   };
+
   if (isLoading) {
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020203]">
-
-      <img
-        src="/logo.png"
-        alt="Tiger Fitness"
-        className="animate-pulse w-28 h-28 object-contain"
-      />
-
-    </div>
-  );
-}
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#020203]">
+        <img
+          src="/logo.png"
+          alt="Tiger Fitness"
+          className="animate-pulse w-28 h-28 object-contain"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020203] text-white font-sans antialiased selection:bg-gymAccent selection:text-black overflow-x-hidden scroll-smooth">
@@ -143,10 +142,8 @@ gsap.utils.toArray("section").forEach((section) => {
       </div>
 
       {currentPage === 'Contact' ? (
-  <Contact onTabChange={handleTabChange} />
-) : currentPage === 'Membership' ? (
-
-       
+        <Contact onTabChange={handleTabChange} />
+      ) : currentPage === 'Membership' ? (
         
         /* ==================== PAGE VIEW 03: DEDICATED MEMBERSHIP VIEW ==================== */
         <div className="pt-24 min-h-screen relative z-10 flex flex-col justify-between animation-fade-in">
@@ -165,19 +162,20 @@ gsap.utils.toArray("section").forEach((section) => {
 
             <section className="relative w-full bg-[#020203] py-16 px-4 sm:px-6 md:px-16 border-t border-white/[0.02]">
               <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                
                 {/* STUDENT PLAN */}
                 <div 
-  onClick={() => setSelectedPlan('Student')}
-  className={`border p-8 rounded-sm flex flex-col justify-between min-h-[520px] cursor-pointer transition-all duration-300 group
-    ${selectedPlan === 'Student' 
-      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
-      : 'border-white/[0.03] bg-white/[0.001] hover:border-gymAccent hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
-    }`}
->
+                  onClick={() => setSelectedPlan('Student')}
+                  className={`border p-8 rounded-sm flex flex-col justify-between min-h-[520px] cursor-pointer transition-all duration-300 group
+                    ${selectedPlan === 'Student' 
+                      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
+                      : 'border-white/[0.03] bg-white/[0.001] hover:border-gymAccent hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
+                    }`}
+                >
                   <div className="space-y-6">
-    <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-widest text-cyan-400 bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-sm uppercase">
-      <GraduationCap className="w-3.5 h-3.5" /> Student Plan
-    </div>
+                    <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-widest text-cyan-400 bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-sm uppercase">
+                      <GraduationCap className="w-3.5 h-3.5" /> Student Plan
+                    </div>
                     <p className="text-[11px] text-gray-500 font-light leading-relaxed">Available for all local college and school students with active institutional ID card profiles.</p>
                     <div className="space-y-3 pt-2 text-xs">
                       <div className="grid grid-cols-3 border-b border-white/5 pb-2 font-mono text-gray-500 font-bold uppercase text-[10px]">
@@ -194,29 +192,29 @@ gsap.utils.toArray("section").forEach((section) => {
                       </div>
                     </div>
                   </div>
-                 <button 
-    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
-    className="w-full mt-8 bg-white hover:bg-gymAccent text-black font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
-  >
-    Select Student Plan
-  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
+                    className="w-full mt-8 bg-white hover:bg-gymAccent text-black font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
+                  >
+                    Select Student Plan
+                  </button>
                 </div>
 
                 {/* EMPLOYEE PLAN */}
                 <div 
-  onClick={() => setSelectedPlan('Employee')}
-  className={`border-2 p-8 rounded-sm flex flex-col justify-between min-h-[540px] cursor-pointer transition-all duration-300 group lg:-translate-y-4
-    ${selectedPlan === 'Employee' 
-      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
-      : 'border-gymAccent bg-gymAccent/[0.01] hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
-    }`}
->
-  <span className="absolute -top-3 left-6 bg-gymAccent text-black text-[8px] font-mono tracking-widest font-black uppercase px-3 py-0.5 rounded-sm">Best Seller</span>
-  <div className="space-y-6 pt-2">
+                  onClick={() => setSelectedPlan('Employee')}
+                  className={`border-2 p-8 rounded-sm flex flex-col justify-between min-h-[540px] cursor-pointer transition-all duration-300 group lg:-translate-y-4
+                    ${selectedPlan === 'Employee' 
+                      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
+                      : 'border-gymAccent bg-gymAccent/[0.01] hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
+                    }`}
+                >
+                  <span className="absolute -top-3 left-6 bg-gymAccent text-black text-[8px] font-mono tracking-widest font-black uppercase px-3 py-0.5 rounded-sm">Best Seller</span>
+                  <div className="space-y-6 pt-2">
                     <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-widest text-gymAccent bg-gymAccent/5 border border-gymAccent/20 px-3 py-1 rounded-sm uppercase">
-      <Briefcase className="w-3.5 h-3.5" /> Employee Plan
-    </div>
-    <p className="text-[11px] text-gray-300 font-light leading-relaxed">Configured for working professionals, tech park tenants, and returning regular gym members.</p>
+                      <Briefcase className="w-3.5 h-3.5" /> Employee Plan
+                    </div>
+                    <p className="text-[11px] text-gray-300 font-light leading-relaxed">Configured for working professionals, tech park tenants, and returning regular gym members.</p>
                     <div className="space-y-3 pt-2 text-xs">
                       <div className="grid grid-cols-3 border-b border-white/10 pb-2 font-mono text-gray-400 font-bold uppercase text-[10px]">
                         <span>Term</span><span className="text-center">Gym</span><span className="text-right text-gymAccent">Fitness</span>
@@ -232,26 +230,29 @@ gsap.utils.toArray("section").forEach((section) => {
                       </div>
                     </div>
                   </div>
-<button 
-    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
-    className="w-full mt-8 bg-gymAccent hover:bg-orange-600 text-black font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
-  >
-    Lock In Plan
-  </button>                </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
+                    className="w-full mt-8 bg-gymAccent hover:bg-orange-600 text-black font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
+                  >
+                    Lock In Plan
+                  </button> 
+                </div>
 
                 {/* COUPLE PACK */}
-<div 
-  onClick={() => setSelectedPlan('Couple')}
-  className={`border p-8 rounded-sm flex flex-col justify-between min-h-[520px] cursor-pointer transition-all duration-300 group
-    ${selectedPlan === 'Couple' 
-      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
-      : 'border-white/[0.03] bg-white/[0.001] hover:border-gymAccent hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
-    }`}
->                 <div className="space-y-6">
-    <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-widest text-pink-400 bg-pink-500/5 border border-pink-500/20 px-3 py-1 rounded-sm uppercase">
-      <Heart className="w-3.5 h-3.5" /> Couple Pack
-    </div>
-    <p className="text-[11px] text-gray-500 font-light leading-relaxed">Perfect 1+1 bundle rates designed for corporate colleagues, friends, or couples joining together.</p> <div className="space-y-6 pt-4 border-t border-white/5">
+                <div 
+                  onClick={() => setSelectedPlan('Couple')}
+                  className={`border p-8 rounded-sm flex flex-col justify-between min-h-[520px] cursor-pointer transition-all duration-300 group
+                    ${selectedPlan === 'Couple' 
+                      ? 'border-gymAccent ring-2 ring-gymAccent/20 bg-white/[0.02]' 
+                      : 'border-white/[0.03] bg-white/[0.001] hover:border-gymAccent hover:shadow-[0_0_30px_rgba(255,107,0,0.15)]'
+                    }`}
+                > 
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center gap-2 text-[10px] font-mono tracking-widest text-pink-400 bg-pink-500/5 border border-pink-500/20 px-3 py-1 rounded-sm uppercase">
+                      <Heart className="w-3.5 h-3.5" /> Couple Pack
+                    </div>
+                    <p className="text-[11px] text-gray-500 font-light leading-relaxed">Perfect 1+1 bundle rates designed for corporate colleagues, friends, or couples joining together.</p> 
+                    <div className="space-y-6 pt-4 border-t border-white/5">
                       <div className="flex justify-between items-center border-b border-white/5 pb-3">
                         <div className="flex flex-col">
                           <span className="text-xs text-white font-bold uppercase tracking-wider">1 Year GYM Pass</span>
@@ -268,12 +269,13 @@ gsap.utils.toArray("section").forEach((section) => {
                       </div>
                     </div>
                   </div>
-<button 
-    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
-    className="w-full mt-8 bg-white hover:bg-gymAccent text-black hover:text-white font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
-  >
-    Secure Package
-  </button>                </div>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleTabChange('Contact'); }} 
+                    className="w-full mt-8 bg-white hover:bg-gymAccent text-black hover:text-white font-bold text-xs uppercase py-3.5 rounded-sm cursor-pointer transition-colors border-0"
+                  >
+                    Secure Package
+                  </button> 
+                </div>
               </div>
             </section>
 
@@ -565,100 +567,31 @@ gsap.utils.toArray("section").forEach((section) => {
             </div>
           </footer>
         </>
-      )}
+      )} 
+      
       {showTopBtn && (
-  <button
-    onClick={() =>
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      })
-    }
-    className="
-      fixed
-      bottom-8
-      right-8
-      w-12
-      h-12
-      rounded-full
-      bg-gymAccent
-      text-black
-      flex
-      items-center
-      justify-center
-      shadow-lg
-      hover:scale-110
-      transition-all
-      duration-300
-      z-[999]
-    "
-  >
-    <ChevronUp className="w-5 h-5" />
-  </button>
-)}
+        <button
+          onClick={() =>
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth",
+            })
+          }
+          className="fixed bottom-24 right-8 w-12 h-12 rounded-full bg-gymAccent text-black flex items-center justify-center shadow-lg hover:scale-110 transition-all duration-300 z-[998]"
+        >
+          <ChevronUp className="w-5 h-5" />
+        </button>
+      )}
+      
+      <a 
+        href="https://wa.me/919876543210?text=Hi! I am interested in joining Tiger Fitness." 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-8 right-8 z-[999] bg-[#25D366] text-white p-4 rounded-full shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:scale-110 transition-transform duration-300 flex items-center justify-center"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </a>
+
     </div>
-  );
-}
-
-function ContactForm() {
-  const [state, handleSubmit] = useForm("YOUR_FORM_ID_HERE");
-
-  if (state.succeeded) {
-      return (
-        <div className="py-10 text-center">
-          <p className="text-white font-bold uppercase tracking-widest text-sm">Message Sent!</p>
-        </div>
-      );
-  }
-
-  return (
-    
-  
-  <form onSubmit={handleSubmit} className="space-y-4">
-    {/* Full Name & Phone in a row for balance */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div className="space-y-1">
-        <label className="text-[10px] font-mono text-neutral-500 uppercase">Full Name</label>
-        <input name="name" type="text" required className="w-full bg-[#111111] border border-white/[0.1] rounded-md px-3 py-2 text-sm text-white focus:border-gymAccent focus:outline-none transition-all" />
-      </div>
-      <div className="space-y-1">
-        <label className="text-[10px] font-mono text-neutral-500 uppercase">Phone</label>
-        <input name="phone" type="tel" required className="w-full bg-[#111111] border border-white/[0.1] rounded-md px-3 py-2 text-sm text-white focus:border-gymAccent focus:outline-none transition-all" />
-      </div>
-    </div>
-
-    {/* Email */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-mono text-neutral-500 uppercase">Email Address</label>
-      <input name="email" type="email" required className="w-full bg-[#111111] border border-white/[0.1] rounded-md px-3 py-2 text-sm text-white focus:border-gymAccent focus:outline-none transition-all" />
-    </div>
-
-    {/* Message */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-mono text-neutral-500 uppercase">Your Message</label>
-      <textarea name="message" required rows="4" className="w-full bg-[#111111] border border-white/[0.1] rounded-md px-3 py-2 text-sm text-white focus:border-gymAccent focus:outline-none transition-all resize-none"></textarea>
-      {/* Floating WhatsApp Button */}
-<a 
-  href="https://wa.me/919876543210?text=Hi! I am interested in joining Tiger Fitness." 
-  target="_blank" 
-  rel="noopener noreferrer"
-  className="fixed bottom-8 right-8 z-[999] bg-[#25D366] text-white p-4 rounded-full shadow-[0_0_20px_rgba(37,211,102,0.3)] hover:scale-110 transition-transform duration-300 flex items-center justify-center"
->
-  <MessageCircle className="w-6 h-6" />
-</a>
-    </div>
-
-    <ValidationError errors={state.errors} />
-
-    {/* Big Clear Submit Button */}
-    <button 
-      type="submit" 
-      disabled={state.submitting}
-      className="w-full mt-4 bg-gymAccent hover:bg-orange-600 text-black font-bold text-xs uppercase tracking-[0.2em] py-3.5 rounded-md transition-all duration-300 disabled:opacity-50"
-    >
-      {state.submitting ? 'Sending...' : 'Send Message'}
-    </button>
-  </form>
-
   );
 }
